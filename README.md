@@ -1,4 +1,4 @@
-## React + TypeScript + Vite + GraphQL + zustand
+## React + TypeScript + Vite + GraphQL + effector
 
 #### Чтобы авторизация работала требдуется запустить прокси сервер
 ```
