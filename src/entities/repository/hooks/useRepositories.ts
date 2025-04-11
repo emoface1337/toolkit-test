@@ -3,7 +3,8 @@ import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { RepositoryModel } from '@/entities/repository/model.ts';
 import { ITEMS_PER_PAGE } from '@/shared/constants/repositories.ts';
-import { useGithubOAuthStore, useRepositoriesStore } from '@/shared/stores';
+import { useGithubOAuthStore } from '@/shared/stores/githubOAuth.store.ts';
+import { useRepositoriesStore } from '@/shared/stores/repositories.store.ts';
 
 type UseRepositoriesResult = {
   repositories: RepositoryModel[];
@@ -43,7 +44,7 @@ export const useRepositories = (): UseRepositoriesResult => {
     setSearchParams(newParams);
   };
 
-  const handleResetSearchParams =  useCallback(() => {
+  const handleResetSearchParams = useCallback(() => {
     setSearchParams({});
   }, []);
 

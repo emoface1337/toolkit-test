@@ -16,12 +16,13 @@
     "axios": "^1.8.4",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "effector": "^23.3.0",
+    "effector-react": "^23.3.0",
     "express": "^5.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0",
-    "sass": "^1.86.3",
-    "zustand": "^5.0.3"
+    "sass": "^1.86.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

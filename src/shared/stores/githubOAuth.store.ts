@@ -1,24 +1,32 @@
-import { create } from 'zustand';
+import { combine, createEvent, createStore } from 'effector';
+import { useUnit } from 'effector-react';
 
-interface GitHubOAuthState {
-  accessToken: string | null;
-  setAccessToken: (token: string | null) => void;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  isProcessing: boolean;
-  setProcessing: (isProcessing: boolean) => void,
-  setLoading: (isLoading: boolean) => void
-}
+export const setAccessToken = createEvent<string | null>();
+export const setProcessing = createEvent<boolean>();
+export const setLoading = createEvent<boolean>();
 
-export const useGithubOAuthStore = create<GitHubOAuthState>((set) => ({
-  accessToken: null,
-  setAccessToken: (accessToken) => set({
-    accessToken,
-    isAuthenticated: !!accessToken
-  }),
-  isAuthenticated: false,
-  isLoading: true,
-  isProcessing: false,
-  setProcessing: (isProcessing) => set({ isProcessing }),
-  setLoading: (isLoading) => set({ isLoading })
-}));
+export const $accessToken = createStore<string | null>(null);
+export const $isProcessing = createStore<boolean>(false);
+export const $isLoading = createStore<boolean>(true);
+
+export const $isAuthenticated = $accessToken.map((token) => !!token);
+
+export const $githubOAuthState = combine({
+  accessToken: $accessToken,
+  isAuthenticated: $isAuthenticated,
+  isLoading: $isLoading,
+  isProcessing: $isProcessing
+});
+
+$accessToken.on(setAccessToken, (_, token) => token);
+$isProcessing.on(setProcessing, (_, state) => state);
+$isLoading.on(setLoading, (_, state) => state);
+
+export const useGithubOAuthStore = () => {
+  return {
+    ...useUnit($githubOAuthState),
+    setAccessToken: useUnit(setAccessToken),
+    setProcessing: useUnit(setProcessing),
+    setLoading: useUnit(setLoading),
+  };
+};

@@ -1,39 +1,16 @@
-import { useEffect, useState } from 'react';
-import { graphqlClient } from '@/shared/api/graphql';
-import { GET_REPOSITORY_DETAILS } from '../api/queries';
-import { RepositoryDetailsResponse, RepositoryModel } from '../model';
+import { useUnit } from 'effector-react';
 import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { $error, $loading, $repository, fetchRepositoryDetailsFx } from '@/shared/stores/repository.store.ts';
 
 export const useRepositoryDetails = () => {
   const { owner, repo } = useParams<{ owner: string; repo: string }>();
-
-  const [repository, setRepository] = useState<RepositoryModel | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [repository, loading, error] = useUnit([$repository, $loading, $error]);
 
   useEffect(() => {
-    const fetchRepositoryDetails = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await graphqlClient.query<RepositoryDetailsResponse>(
-          GET_REPOSITORY_DETAILS,
-          {
-            owner,
-            name: repo
-          }
-        );
-
-        setRepository(response.repository);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRepositoryDetails();
+    if (owner && repo) {
+      fetchRepositoryDetailsFx({ owner, repo });
+    }
   }, [owner, repo]);
 
   return {

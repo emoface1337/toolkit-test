@@ -1,6 +1,7 @@
 import styles from './styles.module.scss';
-import { useGithubOAuthStore } from '@/shared/stores';
+
 import { useAuth } from '@/features/auth/hooks/useAuth.ts';
+import { useGithubOAuthStore } from '@/shared/stores/githubOAuth.store.ts';
 
 const LoginForm = () => {
   const { login, logout } = useAuth();

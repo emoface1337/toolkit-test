@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '@/shared/config/api';
-import { useGithubOAuthStore } from '@/shared/stores';
+import { useGithubOAuthStore } from '@/shared/stores/githubOAuth.store.ts';
 
 export const useAuth = () => {
   const { isLoading, isProcessing, setProcessing, setLoading, setAccessToken } = useGithubOAuthStore();

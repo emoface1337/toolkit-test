@@ -6,7 +6,7 @@ import { useRepositories } from '@/entities/repository/hooks/useRepositories';
 import { Pagination } from '@/shared/ui/Pagination/Pagination';
 import { useMemo } from 'react';
 import LoginForm from '@/features/auth/login-form';
-import { useGithubOAuthStore } from '@/shared/stores';
+import { useGithubOAuthStore } from '@/shared/stores/githubOAuth.store.ts';
 
 export const RepositoriesPage = () => {
   const { isAuthenticated } = useGithubOAuthStore();
