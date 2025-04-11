@@ -7,7 +7,7 @@ export const RepositoryDetailsPage = () => {
   const { repository, loading, error } = useRepositoryDetails();
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <div className={styles.loading}>Загрузка...</div>;
   }
 
   if (error) {
@@ -15,7 +15,7 @@ export const RepositoryDetailsPage = () => {
   }
 
   if (!repository) {
-    return <div className={styles.error}>Repository not found</div>;
+    return <div className={styles.error}>Такого репозитория нет :(</div>;
   }
 
   const { owner, url, description, name, stargazerCount, languages } = repository;

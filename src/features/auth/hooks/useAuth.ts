@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '@/shared/config/api';
+import { useGithubOAuthStore } from '@/shared/stores';
 
 export const useAuth = () => {
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { isLoading, isProcessing, setProcessing, setLoading, setAccessToken } = useGithubOAuthStore();
 
   useEffect(() => {
     const storedToken = localStorage.getItem('github_token');
     if (storedToken) {
-      setToken(storedToken);
+      setAccessToken(storedToken);
     }
-    setIsLoading(false);
+    setLoading(false);
   }, []);
 
   const login = () => {
@@ -27,35 +26,33 @@ export const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem('github_token');
-    setToken(null);
+    setAccessToken(null);
   };
 
   const handleCallback = async (code: string) => {
     if (isProcessing) return;
 
     try {
-      setIsProcessing(true);
+      setProcessing(true);
       const response = await axios.post('http://localhost:3001/github/access_token', {
         code
       });
 
       if (response.data.access_token) {
         localStorage.setItem('github_token', response.data.access_token);
-        setToken(response.data.access_token);
+        setAccessToken(response.data.access_token);
       }
     } catch (error) {
       console.error('Error during authentication:', error);
     } finally {
-      setIsProcessing(false);
+      setProcessing(false);
     }
   };
 
   return {
-    token,
     isLoading,
     login,
     logout,
-    handleCallback,
-    isAuthenticated: !!token
+    handleCallback
   };
 };

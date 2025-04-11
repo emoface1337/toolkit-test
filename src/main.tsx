@@ -3,7 +3,7 @@ import { AppProvider } from './app';
 import './index.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  // <StrictMode>
   <AppProvider />
-  </React.StrictMode>
+  // </StrictMode>
 );

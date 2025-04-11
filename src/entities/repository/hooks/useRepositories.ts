@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+// useRepositories.ts
+import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { graphqlClient } from '@/shared/api/graphql';
-import { GET_USER_REPOSITORIES, SEARCH_REPOSITORIES } from '../api/queries';
-import { RepositoryModel, SearchResponse, UserRepositoriesResponse } from '../model';
-
-const ITEMS_PER_PAGE = 10;
+import { RepositoryModel } from '@/entities/repository/model.ts';
+import { ITEMS_PER_PAGE } from '@/shared/constants/repositories.ts';
+import { useGithubOAuthStore, useRepositoriesStore } from '@/shared/stores';
 
 type UseRepositoriesResult = {
   repositories: RepositoryModel[];
@@ -16,77 +15,26 @@ type UseRepositoriesResult = {
   handlePageChange: (newPage: number) => void;
 };
 
-type RepositoryFetchOptions = {
-  query?: string | null;
-};
+export const useRepositories = (): UseRepositoriesResult => {
 
-const fetchUserRepositories = async () => {
-  const response = await graphqlClient.query<UserRepositoriesResponse>(GET_USER_REPOSITORIES);
+  const { isAuthenticated, isProcessing: isAuthProcessing, isLoading: isAuthLoading } = useGithubOAuthStore();
 
-  return {
-    repositories: response.viewer.repositories.edges.map((edge) => edge.node),
-    totalCount: response.viewer.repositories.totalCount ?? 1
-  };
-};
-
-const fetchSearchRepositories = async (options: RepositoryFetchOptions) => {
-  if (!options.query) throw new Error('Search query is required');
-
-  const response = await graphqlClient.query<SearchResponse>(SEARCH_REPOSITORIES, {
-    query: `${options.query} sort:stars-desc`
-  });
-
-  return {
-    repositories: response.search.edges.map((edge) => edge.node),
-    totalCount: response.search.repositoryCount ?? 1
-  };
-};
-
-export const useRepositories = (isAuthenticated: boolean = false): UseRepositoriesResult => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q');
   const page = searchParams.get('page');
 
-  const [state, setState] = useState({
-    repositories: [] as RepositoryModel[],
-    isLoading: false,
-    error: null as Error | null,
-    totalPages: 1
-  });
+  const {
+    repositories,
+    isLoading,
+    error,
+    totalPages,
+    fetchRepositories: fetchReposFromStore
+  } = useRepositoriesStore();
 
-  const updateState = (partialState: Partial<typeof state>) => {
-    setState((prev) => ({ ...prev, ...partialState }));
-  };
+  const currentPage = +(page ?? 1);
 
   const fetchRepositories = useCallback(async () => {
-    try {
-      updateState({
-        isLoading: true,
-        error: null
-      });
-
-      const fetchOptions = {
-        query
-      };
-
-      const { repositories, totalCount } = query
-        ? await fetchSearchRepositories(fetchOptions)
-        : await fetchUserRepositories();
-
-      const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-      updateState({
-        repositories,
-        totalPages: totalPages > 10 ? 10 : totalPages
-      });
-    } catch (err) {
-      updateState({
-        error: err as Error
-      });
-    } finally {
-      updateState({
-        isLoading: false
-      });
-    }
+    await fetchReposFromStore(query);
   }, [query]);
 
   const handlePageChange = (newPage: number) => {
@@ -95,21 +43,27 @@ export const useRepositories = (isAuthenticated: boolean = false): UseRepositori
     setSearchParams(newParams);
   };
 
-  useEffect(() => {
-    if (isAuthenticated) fetchRepositories();
-  }, [isAuthenticated, query]);
+  const handleResetSearchParams =  useCallback(() => {
+    setSearchParams({});
+  }, []);
 
-  const currentPage = +(page ?? 1);
+  useEffect(() => {
+    if (!isAuthProcessing && !isAuthLoading && isAuthenticated) fetchRepositories();
+  }, [isAuthLoading, isAuthProcessing, isAuthenticated, query]);
+
+  useEffect(() => {
+    if (!isAuthProcessing && !isAuthLoading && !isAuthenticated) handleResetSearchParams();
+  }, [handleResetSearchParams, isAuthLoading, isAuthProcessing, isAuthenticated]);
 
   return {
-    repositories: state.repositories.slice(
+    repositories: repositories.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,
       currentPage * ITEMS_PER_PAGE
     ),
-    isLoading: state.isLoading,
-    error: state.error,
+    isLoading,
+    error,
     currentPage,
-    totalPages: state.totalPages,
+    totalPages,
     fetchRepositories,
     handlePageChange
   };

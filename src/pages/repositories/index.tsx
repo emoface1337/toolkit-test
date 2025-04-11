@@ -1,20 +1,21 @@
 import { RepositoryCard } from '@/widgets/repository-card';
 import { SearchForm } from '@/features/repositories/search-form';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 import styles from './styles.module.scss';
 import Container from '@/shared/ui/Container/Container.tsx';
 import { useRepositories } from '@/entities/repository/hooks/useRepositories';
 import { Pagination } from '@/shared/ui/Pagination/Pagination';
 import { useMemo } from 'react';
+import LoginForm from '@/features/auth/login-form';
+import { useGithubOAuthStore } from '@/shared/stores';
 
 export const RepositoriesPage = () => {
-  const { isAuthenticated, login, logout } = useAuth();
+  const { isAuthenticated } = useGithubOAuthStore();
   const { repositories, isLoading, error, currentPage, totalPages, handlePageChange } =
-    useRepositories(isAuthenticated);
+    useRepositories();
 
   const renderContent = useMemo(() => {
     if (isLoading) {
-      return <div className={styles.loading}>Loading...</div>;
+      return <div className={styles.loading}>Загрузка...</div>;
     }
 
     if (error) {
@@ -51,18 +52,10 @@ export const RepositoriesPage = () => {
     <Container className={styles.page}>
       <div className={styles.header}>
         <h1>ГитХаб поиск репо</h1>
-        {isAuthenticated ? (
-          <button onClick={logout} className={styles.authButton}>
-            Выйти
-          </button>
-        ) : (
-          <button onClick={login} className={styles.authButton}>
-            Логин через гитхаб
-          </button>
-        )}
+        <LoginForm />
       </div>
 
-      {isAuthenticated && (
+      {!isAuthenticated ? (<div>Войдите чтобы начать поиск</div>) : (
         <>
           <SearchForm />
           {renderContent}
